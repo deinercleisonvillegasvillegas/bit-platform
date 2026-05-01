@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DataCore BI — Plataforma de Inteligencia de Negocio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:        #0a0c10;
+  --surface:   #111419;
+  --surface2:  #181c24;
+  --border:    #1f2530;
+  --border2:   #2a3240;
+  --accent:    #00d4aa;
+  --accent2:   #0077ff;
+  --accent3:   #ff6b35;
+  --warn:      #f59e0b;
+  --danger:    #ef4444;
+  --text:      #e8ecf2;
+  --text2:     #8a95a3;
+  --text3:     #4a5568;
+  --mono:      'DM Mono', monospace;
+  --sans:      'DM Sans', sans-serif;
+  --display:   'Syne', sans-serif;
+  --radius:    8px;
+  --radius-lg: 14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* ─── SIDEBAR ─── */
+#sidebar{
+  position:fixed;top:0;left:0;width:220px;height:100vh;
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;transition:.3s;
+}
+.logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-mark{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-mark svg{width:18px;height:18px;stroke:#000;stroke-width:2.5;fill:none}
+.logo-text{font-family:var(--display);font-weight:800;font-size:15px;letter-spacing:-.3px;color:var(--text)}
+.logo-text span{color:var(--accent);font-size:11px;display:block;font-weight:400;font-family:var(--mono);letter-spacing:.5px}
+nav{flex:1;padding:16px 10px;overflow-y:auto}
+.nav-section{font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:1.5px;padding:12px 10px 6px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius);cursor:pointer;color:var(--text2);font-size:13px;font-weight:400;transition:.15s;position:relative;margin-bottom:2px}
+.nav-item svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;fill:none;flex-shrink:0}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:rgba(0,212,170,.08);color:var(--accent);font-weight:500}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;height:60%;width:2.5px;background:var(--accent);border-radius:2px}
+.nav-badge{margin-left:auto;font-size:10px;font-family:var(--mono);background:rgba(0,212,170,.12);color:var(--accent);padding:2px 7px;border-radius:20px}
+.sidebar-footer{padding:14px 16px;border-top:1px solid var(--border)}
+.user-pill{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius);cursor:pointer;transition:.15s}
+.user-pill:hover{background:var(--surface2)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0077ff,#00d4aa);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.user-info{flex:1;min-width:0}
+.user-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:10px;color:var(--text3);font-family:var(--mono)}
+
+/* ─── MAIN ─── */
+#main{margin-left:220px;min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:50;
+  background:rgba(10,12,16,.85);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:16px;padding:12px 28px;
+}
+.page-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--surface2);color:var(--text2);font-size:12px;font-family:var(--sans);cursor:pointer;transition:.15s;white-space:nowrap}
+.btn svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none}
+.btn:hover{border-color:var(--border2);background:var(--surface);color:var(--text)}
+.btn-primary{background:var(--accent);color:#000;border-color:var(--accent);font-weight:500}
+.btn-primary:hover{background:#00bfa0;border-color:#00bfa0;color:#000}
+.date-range{font-family:var(--mono);font-size:11px;color:var(--text3);background:var(--surface);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius);cursor:pointer}
+
+/* ─── CONTENT ─── */
+.content{padding:28px;flex:1}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px}
+.section-title{font-family:var(--display);font-size:13px;font-weight:600;color:var(--text2);letter-spacing:.5px;text-transform:uppercase}
+.section-link{font-size:11px;color:var(--accent);cursor:pointer;font-family:var(--mono);text-decoration:none;opacity:.8}
+.section-link:hover{opacity:1}
+
+/* ─── KPI CARDS ─── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpi-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:20px;position:relative;overflow:hidden;cursor:pointer;transition:.2s;
+}
+.kpi-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+.kpi-card::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;filter:blur(30px);opacity:.15}
+.kpi-card.green::after{background:var(--accent)}
+.kpi-card.blue::after{background:var(--accent2)}
+.kpi-card.orange::after{background:var(--accent3)}
+.kpi-card.warn::after{background:var(--warn)}
+.kpi-label{font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.kpi-value{font-family:var(--display);font-size:28px;font-weight:800;color:var(--text);line-height:1;margin-bottom:8px}
+.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:20px;font-weight:500}
+.kpi-delta.up{background:rgba(0,212,170,.1);color:var(--accent)}
+.kpi-delta.down{background:rgba(239,68,68,.1);color:var(--danger)}
+.kpi-spark{position:absolute;bottom:0;right:0;width:80px;height:36px;opacity:.5}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:6px}
+
+/* ─── CHARTS GRID ─── */
+.charts-row{display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px}
+.charts-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px}
+.chart-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:22px;position:relative;
+}
+.chart-title{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)}
+.chart-sub{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:20px}
+.chart-wrap{position:relative;width:100%}
+
+/* ─── TABLE ─── */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:28px}
+.table-header{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.table-title{font-family:var(--display);font-size:14px;font-weight:600;flex:1}
+.search-box{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;flex:0 0 200px}
+.search-box svg{width:13px;height:13px;stroke:var(--text3);stroke-width:2;fill:none;flex-shrink:0}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:12px;font-family:var(--sans);width:100%}
+.search-box input::placeholder{color:var(--text3)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead tr{background:var(--surface2)}
+th{text-align:left;padding:10px 18px;font-size:10px;font-family:var(--mono);color:var(--text3);letter-spacing:.8px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--text2)}
+th .sort-icon{display:inline-block;margin-left:4px;opacity:.4;font-size:9px}
+td{padding:11px 18px;border-bottom:1px solid var(--border);color:var(--text2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--surface2);color:var(--text)}
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 9px;border-radius:20px;font-size:10px;font-family:var(--mono);font-weight:500}
+.status-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.s-active{background:rgba(0,212,170,.1);color:var(--accent)}
+.s-pending{background:rgba(245,158,11,.1);color:var(--warn)}
+.s-inactive{background:rgba(239,68,68,.1);color:var(--danger)}
+.s-review{background:rgba(0,119,255,.1);color:var(--accent2)}
+.revenue-bar{display:flex;align-items:center;gap:8px}
+.bar-bg{flex:1;height:4px;background:var(--surface2);border-radius:2px;min-width:60px}
+.bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+td.mono{font-family:var(--mono);font-size:11px}
+td.pos{color:var(--accent)}
+td.neg{color:var(--danger)}
+
+/* ─── PIPELINE / FUNNEL ─── */
+.pipeline-wrap{display:flex;gap:10px;align-items:flex-end;height:120px;padding-bottom:4px}
+.pipe-stage{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
+.pipe-bar{width:100%;border-radius:4px 4px 0 0;transition:.6s ease;position:relative}
+.pipe-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-align:center;line-height:1.3}
+.pipe-val{font-size:12px;font-weight:600;color:var(--text);font-family:var(--display)}
+
+/* ─── TABS ─── */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tab{padding:8px 16px;font-size:12px;font-family:var(--mono);color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;margin-bottom:-1px}
+.tab:hover{color:var(--text2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* ─── ALERT / INSIGHT BOX ─── */
+.insights{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:28px}
+.insight-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+  padding:16px;display:flex;gap:12px;align-items:flex-start;transition:.2s;cursor:pointer;
+}
+.insight-card:hover{border-color:var(--border2)}
+.insight-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.insight-text{flex:1}
+.insight-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;font-family:var(--display)}
+.insight-desc{font-size:11px;color:var(--text3);line-height:1.5}
+.insight-tag{display:inline-block;font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:10px;margin-top:6px}
+.tag-green{background:rgba(0,212,170,.1);color:var(--accent)}
+.tag-blue{background:rgba(0,119,255,.1);color:var(--accent2)}
+.tag-warn{background:rgba(245,158,11,.1);color:var(--warn)}
+.tag-red{background:rgba(239,68,68,.1);color:var(--danger)}
+
+/* ─── MINI STAT ROW ─── */
+.stat-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-name{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px}
+.stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.stat-pct{font-family:var(--mono);font-size:11px;color:var(--text3)}
+.stat-val{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:500}
+.prog{height:3px;border-radius:2px;margin-top:4px}
+
+/* ─── SPARKLINES ─── */
+canvas.spark{display:block}
+
+/* ─── HEADER PULSE ─── */
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 2s ease-in-out infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,170,.4)}50%{box-shadow:0 0 0 5px rgba(0,212,170,0)}}
+.live-label{font-size:10px;font-family:var(--mono);color:var(--accent);display:flex;align-items:center;gap:5px}
+
+/* ─── PAGE SECTIONS (tabs) ─── */
+.page{display:none}
+.page.active{display:block}
+
+/* ─── LOADING ANIM ─── */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.kpi-card{animation:fadeInUp .35s ease both}
+.kpi-card:nth-child(1){animation-delay:.05s}
+.kpi-card:nth-child(2){animation-delay:.10s}
+.kpi-card:nth-child(3){animation-delay:.15s}
+.kpi-card:nth-child(4){animation-delay:.20s}
+.chart-card{animation:fadeInUp .4s ease .2s both}
+
+/* ─── FOOTER ─── */
+.app-footer{
+  margin-left:0;padding:18px 28px;
+  border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  font-size:11px;font-family:var(--mono);color:var(--text3);
+  background:var(--surface);
+}
+.app-footer a{color:var(--text3);text-decoration:none;transition:.15s}
+.app-footer a:hover{color:var(--accent)}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  #sidebar{width:60px}
+  .logo-text,.nav-section,.nav-item span,.nav-badge,.user-info{display:none}
+  .logo{justify-content:center;padding:16px 0}
+  .nav-item{justify-content:center;padding:12px}
+  #main{margin-left:60px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .charts-row{grid-template-columns:1fr}
+  .charts-row-3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </div>
+    <div class="logo-text">DataCore<span>BI · v2.4.1</span></div>
+  </div>
+  <nav>
+    <div class="nav-section">Análisis</div>
+    <div class="nav-item active" onclick="goPage('dashboard',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="goPage('ventas',this)">
+      <svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      <span>Ventas & Revenue</span>
+      <span class="nav-badge">LIVE</span>
+    </div>
+    <div class="nav-item" onclick="goPage('clientes',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Clientes & CRM</span>
+    </div>
+    <div class="nav-item" onclick="goPage('productos',this)">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>Productos</span>
+    </div>
+    <div class="nav-section">Inteligencia</div>
+    <div class="nav-item" onclick="goPage('predicciones',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      <span>Predicciones ML</span>
+      <span class="nav-badge">AI</span>
+    </div>
+    <div class="nav-item" onclick="goPage('cohort',this)">
+      <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span>Cohort & Retención</span>
+    </div>
+    <div class="nav-section">Config</div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 0 0 5 19.07M4.93 19.07A10 10 0 0 0 19 4.93"/></svg>
+      <span>Fuentes de datos</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="user-pill">
+      <div class="avatar">CR</div>
+      <div class="user-info">
+        <div class="user-name">Carlos Ramírez</div>
+        <div class="user-role">DATA ENGINEER</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard General</div>
+    <div class="topbar-actions">
+      <div class="live-label"><span class="live-dot"></span>Actualizando en vivo</div>
+      <div class="date-range" onclick="cycleDateRange(this)">Ene – Dic 2024 ▾</div>
+      <button class="btn" onclick="openImportModal()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Importar
+      </button>
+      <button class="btn" onclick="openExportModal()">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Exportar
+      </button>
+      <button class="btn btn-primary" onclick="refreshData()">
+        <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Sincronizar
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════ DASHBOARD PAGE ═══════════ -->
+  <div class="content page active" id="page-dashboard">
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card green" onclick="goPage('ventas',document.querySelector('[onclick*=ventas]'))">
+        <div class="kpi-label">Revenue Total</div>
+        <div class="kpi-value" id="kpi-rev">$4.28M</div>
+        <span class="kpi-delta up">↑ 18.4%</span>
+        <div class="kpi-sub">vs. mismo periodo año ant.</div>
+        <canvas class="kpi-spark" id="spark0" width="80" height="36"></canvas>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">Clientes Activos</div>
+        <div class="kpi-value" id="kpi-cust">12,847</div>
+        <span class="kpi-delta up">↑ 9.1%</span>
+        <div class="kpi-sub">+1,064 este mes</div>
+        <canvas class="kpi-spark" id="spark1" width="80" height="36"></canvas>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">Tasa Conversión</div>
+        <div class="kpi-value" id="kpi-conv">3.74%</div>
+        <span class="kpi-delta down">↓ 0.3%</span>
+        <div class="kpi-sub">Funnel completo</div>
+        <canvas class="kpi-spark" id="spark2" width="80" height="36"></canvas>
+      </div>
+      <div class="kpi-card warn">
+        <div class="kpi-label">Churn Rate</div>
+        <div class="kpi-value" id="kpi-churn">2.1%</div>
+        <span class="kpi-delta up">↓ 0.8% mejor</span>
+        <div class="kpi-sub">Meta: &lt; 2.5%</div>
+        <canvas class="kpi-spark" id="spark3" width="80" height="36"></canvas>
+      </div>
+    </div>
+
+    <!-- AI INSIGHTS -->
+    <div class="section-header">
+      <div class="section-title">⚡ Insights automatizados — IA</div>
+      <a class="section-link" onclick="goPage('predicciones',document.querySelectorAll('.nav-item')[4])">Ver modelo ML →</a>
+    </div>
+    <div class="insights">
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(0,212,170,.1)">📈</div>
+        <div class="insight-text">
+          <div class="insight-title">Segmento Enterprise en aceleración</div>
+          <div class="insight-desc">Las cuentas +$50k crecen 34% MoM. Reasignar 2 AEs al segmento incrementaría revenue proyectado en $180k / trimestre.</div>
+          <span class="insight-tag tag-green">OPORTUNIDAD</span>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(239,68,68,.1)">⚠️</div>
+        <div class="insight-text">
+          <div class="insight-title">Riesgo churn en 347 cuentas</div>
+          <div class="insight-desc">El modelo XGBoost detecta señales de baja intención. ARR expuesto: $420k. Activar campaña de retención en las próximas 48h.</div>
+          <span class="insight-tag tag-red">ACCIÓN URGENTE</span>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(0,119,255,.1)">🔄</div>
+        <div class="insight-text">
+          <div class="insight-title">Pipeline Q1 2025 sub-estimado</div>
+          <div class="insight-desc">Con seasonality histórica, el modelo predice cierre de $1.1M en Q1. El forecast manual muestra solo $820k — gap del 34%.</div>
+          <span class="insight-tag tag-blue">FORECAST</span>
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(245,158,11,.1)">🧪</div>
+        <div class="insight-text">
+          <div class="insight-title">A/B Test pricing: variante B gana</div>
+          <div class="insight-desc">Con n=2,840 (95% confianza), el precio $49 → $59 mantiene conversión y aumenta ARPU 20.4%. Recomendación: roll out.</div>
+          <span class="insight-tag tag-warn">TEST</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 1 -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Revenue mensual vs año anterior</div>
+        <div class="chart-sub">2024 activo · 2023 referencia · objetivo presupuesto</div>
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="revenueChart"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Mix de canal</div>
+        <div class="chart-sub">Distribución revenue YTD</div>
+        <div class="chart-wrap" style="height:240px">
+          <canvas id="channelChart"></canvas>
+        </div>
+        <div id="channel-legend" style="margin-top:14px;display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+    </div>
+
+    <!-- CHARTS ROW 2 -->
+    <div class="charts-row-3">
+      <div class="chart-card">
+        <div class="chart-title">Funnel de conversión</div>
+        <div class="chart-sub">Pipeline actual · leads → closed</div>
+        <div id="funnel-wrap"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Revenue por región</div>
+        <div class="chart-sub">% del total YTD</div>
+        <div id="region-stats" style="margin-top:4px"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Métricas de producto</div>
+        <div class="chart-sub">Engagement & activación</div>
+        <div class="chart-wrap" style="height:170px">
+          <canvas id="radarChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="section-header">
+      <div class="section-title">Top cuentas — YTD</div>
+      <a class="section-link" onclick="goPage('clientes',document.querySelectorAll('.nav-item')[2])">Ver todos los clientes →</a>
+    </div>
+    <div class="table-card">
+      <div class="table-header">
+        <div class="table-title">Cuentas activas — Revenue ranking</div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" placeholder="Buscar cuenta..." id="search-input" oninput="filterTable()"/>
+        </div>
+        <button class="btn">Filtros</button>
+      </div>
+      <table id="main-table">
+        <thead>
+          <tr>
+            <th onclick="sortTable(0)">Empresa <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable(1)">Segmento <span class="sort-icon">↕</span></th>
+            <th onclick="sortTable(2)">Revenue YTD <span class="sort-icon">↕</span></th>
+            <th>Trend</th>
+            <th onclick="sortTable(4)">Δ vs LY <span class="sort-icon">↕</span></th>
+            <th>Estado</th>
+            <th onclick="sortTable(6)">Health Score <span class="sort-icon">↕</span></th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════ VENTAS PAGE ═══════════ -->
+  <div class="content page" id="page-ventas">
+    <div class="kpi-grid">
+      <div class="kpi-card green"><div class="kpi-label">Nuevas oportunidades</div><div class="kpi-value">284</div><span class="kpi-delta up">↑ 22%</span></div>
+      <div class="kpi-card blue"><div class="kpi-label">Pipeline total</div><div class="kpi-value">$8.4M</div><span class="kpi-delta up">↑ 11%</span></div>
+      <div class="kpi-card orange"><div class="kpi-label">Deal size promedio</div><div class="kpi-value">$29.5k</div><span class="kpi-delta down">↓ 3.2%</span></div>
+      <div class="kpi-card warn"><div class="kpi-label">Sales cycle (días)</div><div class="kpi-value">47</div><span class="kpi-delta up">↓ 8 días mejor</span></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Deals cerrados — Waterfall mensual</div>
+        <div class="chart-sub">Won vs Lost · 2024</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="waterfallChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Pipeline por etapa</div>
+        <div class="chart-sub">Distribución actual</div>
+        <div class="chart-wrap" style="height:260px"><canvas id="pipelineChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ CLIENTES PAGE ═══════════ -->
+  <div class="content page" id="page-clientes">
+    <div class="kpi-grid">
+      <div class="kpi-card green"><div class="kpi-label">NPS Score</div><div class="kpi-value">68</div><span class="kpi-delta up">↑ 5 pts</span></div>
+      <div class="kpi-card blue"><div class="kpi-label">LTV promedio</div><div class="kpi-value">$14.2k</div><span class="kpi-delta up">↑ 7.3%</span></div>
+      <div class="kpi-card orange"><div class="kpi-label">CAC</div><div class="kpi-value">$1,840</div><span class="kpi-delta down">↑ 4.1% peor</span></div>
+      <div class="kpi-card warn"><div class="kpi-label">LTV : CAC ratio</div><div class="kpi-value">7.7x</div><span class="kpi-delta up">Saludable</span></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:14px">
+      <div class="chart-title">Distribución de clientes por segmento & revenue</div>
+      <div class="chart-sub">Bubble = ARR · Eje X = Health Score · Eje Y = Meses como cliente</div>
+      <div class="chart-wrap" style="height:300px"><canvas id="bubbleChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PRODUCTOS PAGE ═══════════ -->
+  <div class="content page" id="page-productos">
+    <div class="kpi-grid">
+      <div class="kpi-card green"><div class="kpi-label">DAU / MAU</div><div class="kpi-value">41%</div><span class="kpi-delta up">↑ Buena retención</span></div>
+      <div class="kpi-card blue"><div class="kpi-label">Sesiones/día</div><div class="kpi-value">28,400</div><span class="kpi-delta up">↑ 14%</span></div>
+      <div class="kpi-card orange"><div class="kpi-label">Feature adoption</div><div class="kpi-value">63%</div><span class="kpi-delta up">↑ 8pts</span></div>
+      <div class="kpi-card warn"><div class="kpi-label">Time to value</div><div class="kpi-value">3.2d</div><span class="kpi-delta up">↓ 1.1d mejor</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Uso de features por semana</div>
+      <div class="chart-sub">Top 5 features · 12 semanas</div>
+      <div class="chart-wrap" style="height:280px"><canvas id="featureChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ PREDICCIONES PAGE ═══════════ -->
+  <div class="content page" id="page-predicciones">
+    <div class="kpi-grid">
+      <div class="kpi-card green"><div class="kpi-label">Forecast Q1 2025</div><div class="kpi-value">$1.09M</div><span class="kpi-delta up">Confianza 87%</span></div>
+      <div class="kpi-card blue"><div class="kpi-label">Modelo accuracy</div><div class="kpi-value">91.4%</div><span class="kpi-delta up">MAPE 8.6%</span></div>
+      <div class="kpi-card orange"><div class="kpi-label">Cuentas en riesgo</div><div class="kpi-value">347</div><span class="kpi-delta down">ARR: $420k</span></div>
+      <div class="kpi-card warn"><div class="kpi-label">Upsell score top</div><div class="kpi-value">124</div><span class="kpi-delta up">Oportunidad $280k</span></div>
+    </div>
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="chart-title">Forecast revenue — Modelo ARIMA + XGBoost</div>
+        <div class="chart-sub">Real · Predicción · Banda de confianza 90%</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="forecastChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Feature importance — Modelo churn</div>
+        <div class="chart-sub">Variables predictivas top 8</div>
+        <div class="chart-wrap" style="height:280px"><canvas id="importanceChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ COHORT PAGE ═══════════ -->
+  <div class="content page" id="page-cohort">
+    <div class="kpi-grid">
+      <div class="kpi-card green"><div class="kpi-label">Retención mes 1</div><div class="kpi-value">78%</div><span class="kpi-delta up">↑ 4pts</span></div>
+      <div class="kpi-card blue"><div class="kpi-label">Retención mes 6</div><div class="kpi-value">52%</div><span class="kpi-delta up">↑ 7pts</span></div>
+      <div class="kpi-card orange"><div class="kpi-label">Retención mes 12</div><div class="kpi-value">38%</div><span class="kpi-delta up">↑ 11pts</span></div>
+      <div class="kpi-card warn"><div class="kpi-label">Mejor cohort</div><div class="kpi-value">Jun 2024</div><span class="kpi-delta up">84% ret. M1</span></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Cohort de retención — Heatmap</div>
+      <div class="chart-sub">% de clientes activos por mes desde adquisición</div>
+      <div id="cohort-table" style="overflow-x:auto;margin-top:8px"></div>
+    </div>
+  </div>
+
+  <footer class="app-footer">
+    <span>© 2026 DataCore BI — Todos los derechos reservados</span>
+    <a href="mailto:villegasclei27@gmail.com">villegasclei27@gmail.com</a>
+  </footer>
+</main>
+
+<script>
+// ═══════════════════════════════════
+// DATA LAYER — simulated realistic data
+// ═══════════════════════════════════
+const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+const revenueData = {
+  actual: [280,310,345,298,412,388,442,465,378,502,487,520],
+  prev:   [240,268,290,260,350,330,370,395,320,430,410,445],
+  budget: [300,320,360,310,420,400,450,480,390,510,500,530]
+};
+
+const channelData = {
+  labels:['Direct Sales','Inbound','Partnerships','Expansion','PLG'],
+  values:[38,24,18,13,7],
+  colors:['#00d4aa','#0077ff','#ff6b35','#f59e0b','#a78bfa']
+};
+
+const tableData = [
+  {name:'Acme Corp',segment:'Enterprise',rev:284000,delta:32.1,status:'active',health:94},
+  {name:'TechFlow SA',segment:'Mid-Market',rev:156000,delta:18.4,status:'active',health:87},
+  {name:'Innovatek',segment:'Enterprise',rev:312000,delta:-4.2,status:'review',health:61},
+  {name:'DataSphere',segment:'SMB',rev:48000,delta:67.3,status:'active',health:92},
+  {name:'CloudNine Inc',segment:'Mid-Market',rev:198000,delta:11.7,status:'active',health:78},
+  {name:'Nexus Group',segment:'Enterprise',rev:445000,delta:28.9,status:'active',health:96},
+  {name:'Pivot Labs',segment:'SMB',rev:32000,delta:-12.4,status:'pending',health:45},
+  {name:'Meridian Co',segment:'Mid-Market',rev:87000,delta:5.1,status:'active',health:82},
+  {name:'Orbital Systems',segment:'Enterprise',rev:520000,delta:41.2,status:'active',health:98},
+  {name:'StartFast',segment:'SMB',rev:21000,delta:-28.0,status:'inactive',health:22},
+].sort((a,b)=>b.rev-a.rev);
+
+const funnelData = [
+  {label:'Leads',val:8420,color:'#0077ff'},
+  {label:'MQLs',val:2847,color:'#00d4aa'},
+  {label:'SQLs',val:984,color:'#f59e0b'},
+  {label:'Proposals',val:312,color:'#ff6b35'},
+  {label:'Closed',val:115,color:'#a78bfa'},
+];
+
+const regionData = [
+  {name:'LATAM',val:38,color:'#00d4aa',rev:'$1.63M'},
+  {name:'Norteamérica',val:28,color:'#0077ff',rev:'$1.20M'},
+  {name:'Europa',val:21,color:'#f59e0b',rev:'$0.90M'},
+  {name:'APAC',val:13,color:'#ff6b35',rev:'$0.56M'},
+];
+
+const cohortRetention = [
+  [100,78,65,57,51,46,41,38,35,33,31,29],
+  [100,76,61,53,47,43,39,35,32,30,28],
+  [100,80,68,60,54,49,44,41,37,35],
+  [100,74,59,50,44,40,36,32,30],
+  [100,82,70,63,57,52,47,44],
+  [100,79,66,58,52,47,43],
+  [100,77,64,56,50,46],
+  [100,84,72,65,59],
+  [100,81,69,62],
+  [100,76,63],
+  [100,80],
+  [100],
+];
+const cohortMonths = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+// ═══════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════
+const pageTitles = {
+  dashboard:'Dashboard General',
+  ventas:'Ventas & Revenue',
+  clientes:'Clientes & CRM',
+  productos:'Productos',
+  predicciones:'Predicciones ML — IA',
+  cohort:'Cohort & Retención'
+};
+
+function goPage(id, el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[id]||id;
+  initPageCharts(id);
+}
+
+// ═══════════════════════════════════
+// CHART DEFAULTS
+// ═══════════════════════════════════
+Chart.defaults.color = '#8a95a3';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size = 11;
+const grid = {color:'rgba(31,37,48,.8)',borderColor:'transparent'};
+const ticks = {color:'#4a5568',padding:6};
+
+const initialized = {};
+function initPageCharts(id){
+  if(initialized[id]) return;
+  initialized[id]=true;
+  if(id==='ventas') initVentasCharts();
+  if(id==='clientes') initClientesCharts();
+  if(id==='productos') initProductosCharts();
+  if(id==='predicciones') initPrediccionesCharts();
+  if(id==='cohort') initCohort();
+}
+
+// ═══════════════════════════════════
+// DASHBOARD CHARTS
+// ═══════════════════════════════════
+function initDashboard(){
+  // Sparklines
+  const sparkColors=['#00d4aa','#0077ff','#ff6b35','#f59e0b'];
+  [[280,310,345,298,412,388,442,465,378,502,487,520],
+   [9200,9500,9800,10100,10400,10800,11200,11500,11700,12000,12400,12847],
+   [4.1,3.9,3.8,4.0,3.7,3.6,3.9,3.8,3.7,3.7,3.8,3.74],
+   [3.2,3.1,2.9,2.8,2.7,2.6,2.5,2.4,2.3,2.2,2.1,2.1]
+  ].forEach((d,i)=>{
+    const c=document.getElementById('spark'+i);
+    if(!c)return;
+    const ctx=c.getContext('2d');
+    const g=ctx.createLinearGradient(0,0,80,0);
+    g.addColorStop(0,'transparent');
+    g.addColorStop(1,sparkColors[i]);
+    ctx.clearRect(0,0,80,36);
+    ctx.beginPath();
+    const mn=Math.min(...d),mx=Math.max(...d);
+    d.forEach((v,j)=>{
+      const x=j/(d.length-1)*74+3;
+      const y=30-(v-mn)/(mx-mn)*26;
+      j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle=sparkColors[i];ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // Revenue chart
+  if(!initialized.revChart){
+    initialized.revChart=true;
+    new Chart(document.getElementById('revenueChart'),{
+      type:'line',
+      data:{
+        labels:months,
+        datasets:[
+          {label:'2024',data:revenueData.actual,borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,.06)',fill:true,tension:.4,borderWidth:2,pointRadius:3,pointBackgroundColor:'#00d4aa'},
+          {label:'2023',data:revenueData.prev,borderColor:'#2a3240',backgroundColor:'transparent',fill:false,tension:.4,borderWidth:1.5,pointRadius:0,borderDash:[4,4]},
+          {label:'Budget',data:revenueData.budget,borderColor:'#0077ff',backgroundColor:'transparent',fill:false,tension:.4,borderWidth:1.5,pointRadius:0,borderDash:[2,4]},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,position:'top',labels:{boxWidth:8,padding:16,usePointStyle:true,color:'#8a95a3'}}},
+        scales:{
+          x:{grid,ticks},
+          y:{grid,ticks,beginAtZero:false,
+            ticks:{...ticks,callback:v=>'$'+(v/1000).toFixed(0)+'k'}}
+        }
+      }
+    });
+  }
+
+  // Donut canal
+  if(!initialized.channelChart){
+    initialized.channelChart=true;
+    new Chart(document.getElementById('channelChart'),{
+      type:'doughnut',
+      data:{
+        labels:channelData.labels,
+        datasets:[{data:channelData.values,backgroundColor:channelData.colors,borderColor:'#0a0c10',borderWidth:3,hoverOffset:4}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'72%',
+        plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.label+': '+ctx.parsed+'%'}}}
+      }
+    });
+    // Custom legend
+    const leg=document.getElementById('channel-legend');
+    channelData.labels.forEach((l,i)=>{
+      leg.innerHTML+=`<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px">
+        <span style="display:flex;align-items:center;gap:7px;color:#8a95a3"><span style="width:8px;height:8px;border-radius:50%;background:${channelData.colors[i]};flex-shrink:0"></span>${l}</span>
+        <span style="font-family:'DM Mono',monospace;color:#e8ecf2;font-size:12px;font-weight:500">${channelData.values[i]}%</span>
+      </div>`;
+    });
+  }
+
+  // Funnel
+  const fw=document.getElementById('funnel-wrap');
+  if(fw&&!fw.dataset.done){
+    fw.dataset.done='1';
+    const maxV=funnelData[0].val;
+    fw.innerHTML='<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">'+
+    funnelData.map(s=>{
+      const pct=Math.round(s.val/maxV*100);
+      return `<div style="display:flex;align-items:center;gap:10px;cursor:pointer" title="${s.label}: ${s.val.toLocaleString()}">
+        <div style="width:72px;font-size:10px;font-family:'DM Mono',monospace;color:#8a95a3;text-align:right;flex-shrink:0">${s.label}</div>
+        <div style="flex:1;height:28px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative">
+          <div style="width:${pct}%;height:100%;background:${s.color};border-radius:4px;opacity:.85;transition:width .6s ease"></div>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;font-family:'DM Mono',monospace;color:#e8ecf2;font-weight:500">${s.val.toLocaleString()}</span>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  }
+
+  // Regions
+  const rw=document.getElementById('region-stats');
+  if(rw&&!rw.dataset.done){
+    rw.dataset.done='1';
+    rw.innerHTML=regionData.map(r=>`
+      <div class="stat-row">
+        <div class="stat-name"><span class="stat-dot" style="background:${r.color}"></span>${r.name}</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="stat-val">${r.rev}</span>
+          <span class="stat-pct">${r.val}%</span>
+        </div>
+      </div>
+      <div class="prog" style="background:rgba(255,255,255,.05);margin-bottom:6px">
+        <div style="width:${r.val}%;height:100%;background:${r.color};border-radius:2px"></div>
+      </div>
+    `).join('');
+  }
+
+  // Radar
+  if(!initialized.radarChart){
+    initialized.radarChart=true;
+    new Chart(document.getElementById('radarChart'),{
+      type:'radar',
+      data:{
+        labels:['Activación','Retención','Engagement','Expansión','NPS','Adopción'],
+        datasets:[
+          {label:'Actual',data:[82,71,68,55,76,63],borderColor:'#00d4aa',backgroundColor:'rgba(0,212,170,.1)',borderWidth:1.5,pointRadius:3,pointBackgroundColor:'#00d4aa'},
+          {label:'Meta',data:[90,80,80,70,80,75],borderColor:'#2a3240',backgroundColor:'transparent',borderWidth:1,pointRadius:0,borderDash:[3,3]}
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{r:{grid:{color:'rgba(42,50,64,.8)'},pointLabels:{color:'#8a95a3',font:{size:10}},ticks:{display:false},angleLines:{color:'rgba(42,50,64,.6)'}}}
+      }
+    });
+  }
+}
+
+// TABLE
+function renderTable(data){
+  const maxRev=Math.max(...data.map(d=>d.rev));
+  const statusMap={active:'s-active',pending:'s-pending',inactive:'s-inactive',review:'s-review'};
+  const statusLabel={active:'Activo',pending:'Pendiente',inactive:'Inactivo',review:'En revisión'};
+  document.getElementById('table-body').innerHTML=data.map(row=>`
+    <tr>
+      <td style="font-weight:500;color:var(--text)">${row.name}</td>
+      <td><span style="font-size:10px;padding:2px 8px;border-radius:10px;background:var(--surface2);color:var(--text2);font-family:'DM Mono',monospace">${row.segment}</span></td>
+      <td class="mono">
+        <div class="revenue-bar">
+          <span style="min-width:60px">$${(row.rev/1000).toFixed(0)}k</span>
+          <div class="bar-bg"><div class="bar-fill" style="width:${row.rev/maxRev*100}%;background:var(--accent)"></div></div>
+        </div>
+      </td>
+      <td><canvas id="tspk-${row.name.replace(/\s/g,'')}" width="60" height="20"></canvas></td>
+      <td class="mono ${row.delta>0?'pos':'neg'}">${row.delta>0?'+':''}${row.delta.toFixed(1)}%</td>
+      <td><span class="status-pill ${statusMap[row.status]}">${statusLabel[row.status]}</span></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;height:3px;background:var(--surface2);border-radius:2px;min-width:40px">
+            <div style="width:${row.health}%;height:100%;border-radius:2px;background:${row.health>79?'var(--accent)':row.health>50?'var(--warn)':'var(--danger)'}"></div>
+          </div>
+          <span class="mono">${row.health}</span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  // mini sparklines for table
+  setTimeout(()=>{
+    data.forEach(row=>{
+      const c=document.getElementById('tspk-'+row.name.replace(/\s/g,''));
+      if(!c)return;
+      const d=Array.from({length:8},(_,i)=>row.rev*(0.7+Math.random()*.6));
+      d[7]=row.rev;
+      const ctx=c.getContext('2d');
+      ctx.clearRect(0,0,60,20);
+      const mn=Math.min(...d),mx=Math.max(...d);
+      ctx.beginPath();
+      d.forEach((v,i)=>{const x=i/(d.length-1)*56+2;const y=16-(v-mn)/(mx-mn)*13;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+      ctx.strokeStyle=row.delta>0?'#00d4aa':'#ef4444';ctx.lineWidth=1.5;ctx.stroke();
+    },100);
+  });
+}
+
+function filterTable(){
+  const q=document.getElementById('search-input').value.toLowerCase();
+  renderTable(tableData.filter(r=>r.name.toLowerCase().includes(q)||r.segment.toLowerCase().includes(q)));
+}
+function sortTable(col){
+  const keys=['name','segment','rev','','delta','status','health'];
+  const k=keys[col];if(!k)return;
+  tableData.sort((a,b)=>typeof a[k]==='string'?a[k].localeCompare(b[k]):b[k]-a[k]);
+  filterTable();
+}
+
+// ═══════════════════════════════════
+// VENTAS CHARTS
+// ═══════════════════════════════════
+function initVentasCharts(){
+  new Chart(document.getElementById('waterfallChart'),{
+    type:'bar',
+    data:{
+      labels:months,
+      datasets:[
+        {label:'Won ($k)',data:[210,245,280,220,330,305,360,380,290,410,395,420],backgroundColor:'rgba(0,212,170,.7)',borderRadius:4,borderSkipped:false},
+        {label:'Lost ($k)',data:[-45,-38,-52,-40,-60,-55,-48,-62,-44,-58,-52,-45],backgroundColor:'rgba(239,68,68,.5)',borderRadius:4,borderSkipped:false}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a95a3',boxWidth:8,usePointStyle:true}}},
+      scales:{
+        x:{grid,ticks},
+        y:{grid,ticks:{...ticks,callback:v=>'$'+Math.abs(v)+'k'},beginAtZero:true}
+      }
+    }
+  });
+  new Chart(document.getElementById('pipelineChart'),{
+    type:'bar',
+    data:{
+      labels:['Prospecting','Qualification','Demo','Proposal','Negotiation','Closed'],
+      datasets:[{
+        label:'Deals ($k)',
+        data:[1840,1220,980,640,380,115],
+        backgroundColor:['#0077ff88','#00d4aa88','#f59e0b88','#ff6b3588','#a78bfa88','#00d4aa'],
+        borderColor:['#0077ff','#00d4aa','#f59e0b','#ff6b35','#a78bfa','#00d4aa'],
+        borderWidth:1,borderRadius:6,borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid,ticks:{...ticks,callback:v=>'$'+v+'k'}},y:{grid:{display:false},ticks}}
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// CLIENTES CHARTS
+// ═══════════════════════════════════
+function initClientesCharts(){
+  const segments=['Enterprise','Mid-Market','SMB'];
+  const colors=['#00d4aa','#0077ff','#f59e0b'];
+  const bubbles=segments.flatMap((seg,si)=>
+    Array.from({length:12},(_,i)=>({
+      x:Math.round(20+Math.random()*75),
+      y:Math.round(3+Math.random()*42),
+      r:Math.round(4+Math.random()*(si===0?18:si===1?12:7))
+    }))
+  );
+  new Chart(document.getElementById('bubbleChart'),{
+    type:'bubble',
+    data:{
+      datasets:segments.map((seg,i)=>({
+        label:seg,
+        data:Array.from({length:12},()=>({
+          x:Math.round(20+Math.random()*75),
+          y:Math.round(3+Math.random()*42),
+          r:Math.round(4+Math.random()*(i===0?18:i===1?12:7))
+        })),
+        backgroundColor:colors[i]+'55',
+        borderColor:colors[i],
+        borderWidth:1
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a95a3',boxWidth:8,usePointStyle:true}}},
+      scales:{
+        x:{grid,ticks:{...ticks,callback:v=>v+' pts'},title:{display:true,text:'Health Score',color:'#4a5568',font:{size:11}}},
+        y:{grid,ticks,title:{display:true,text:'Meses como cliente',color:'#4a5568',font:{size:11}}}
+      }
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// PRODUCTOS CHARTS
+// ═══════════════════════════════════
+function initProductosCharts(){
+  const features=['Dashboard','Reports','API','Integrations','Mobile'];
+  const fColors=['#00d4aa','#0077ff','#f59e0b','#ff6b35','#a78bfa'];
+  const weeks=Array.from({length:12},(_,i)=>'S'+(i+1));
+  new Chart(document.getElementById('featureChart'),{
+    type:'line',
+    data:{
+      labels:weeks,
+      datasets:features.map((f,i)=>({
+        label:f,
+        data:Array.from({length:12},()=>Math.round(20+Math.random()*70)),
+        borderColor:fColors[i],backgroundColor:'transparent',
+        borderWidth:1.5,tension:.4,pointRadius:2,pointBackgroundColor:fColors[i]
+      }))
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a95a3',boxWidth:8,usePointStyle:true,padding:14}}},
+      scales:{x:{grid,ticks},y:{grid,ticks:{...ticks,callback:v=>v+'%'}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// PREDICCIONES CHARTS
+// ═══════════════════════════════════
+function initPrediccionesCharts(){
+  const fLabels=[...months,'Ene','Feb','Mar'];
+  const actual=[...revenueData.actual,null,null,null];
+  const pred=[null,null,null,null,null,null,null,null,null,null,null,520,580,640,710];
+  const upper=[null,null,null,null,null,null,null,null,null,null,null,560,625,690,775];
+  const lower=[null,null,null,null,null,null,null,null,null,null,null,480,555,590,645];
+  new Chart(document.getElementById('forecastChart'),{
+    type:'line',
+    data:{
+      labels:fLabels,
+      datasets:[
+        {label:'Real 2024',data:actual,borderColor:'#00d4aa',borderWidth:2,tension:.4,pointRadius:3,pointBackgroundColor:'#00d4aa',spanGaps:false},
+        {label:'Predicción',data:pred,borderColor:'#0077ff',borderWidth:2,borderDash:[6,3],tension:.4,pointRadius:3,pointBackgroundColor:'#0077ff',spanGaps:false},
+        {label:'Banda sup.',data:upper,borderColor:'rgba(0,119,255,.2)',borderWidth:0,fill:false,tension:.4,pointRadius:0,spanGaps:false},
+        {label:'Banda inf.',data:lower,borderColor:'rgba(0,119,255,.2)',borderWidth:0,fill:'-1',backgroundColor:'rgba(0,119,255,.08)',tension:.4,pointRadius:0,spanGaps:false},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8a95a3',boxWidth:8,usePointStyle:true,filter:i=>i.datasetIndex<2}}},
+      scales:{x:{grid,ticks},y:{grid,ticks:{...ticks,callback:v=>'$'+v+'k'},beginAtZero:false}}
+    }
+  });
+  const importanceLabels=['Login frequency','Days since last login','Feature usage','Support tickets','Contract length','Seats used','Payment history','Engagement score'];
+  const importanceVals=[0.284,0.218,0.174,0.142,0.098,0.048,0.023,0.013];
+  new Chart(document.getElementById('importanceChart'),{
+    type:'bar',
+    data:{
+      labels:importanceLabels,
+      datasets:[{
+        data:importanceVals,
+        backgroundColor:importanceVals.map(v=>v>0.2?'#00d4aa':v>0.1?'#0077ff':'#2a3240'),
+        borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{grid,ticks:{...ticks,callback:v=>(v*100).toFixed(0)+'%'}},y:{grid:{display:false},ticks:{...ticks,font:{size:10}}}}
+    }
+  });
+}
+
+// ═══════════════════════════════════
+// COHORT HEATMAP
+// ═══════════════════════════════════
+function initCohort(){
+  const cohortMonthLabels=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  function heatColor(v){
+    if(v===null)return'transparent';
+    if(v>=80)return'rgba(0,212,170,.85)';
+    if(v>=60)return'rgba(0,212,170,.5)';
+    if(v>=40)return'rgba(245,158,11,.5)';
+    if(v>=20)return'rgba(239,68,68,.4)';
+    return'rgba(239,68,68,.2)';
+  }
+  const c=document.getElementById('cohort-table');
+  let html='<table style="border-collapse:collapse;font-size:11px;font-family:\'DM Mono\',monospace;min-width:600px"><thead><tr>';
+  html+='<th style="padding:6px 10px;color:#4a5568;text-align:left;white-space:nowrap">Cohort</th>';
+  for(let m=0;m<12;m++) html+=`<th style="padding:6px 10px;color:#4a5568;text-align:center">M+${m}</th>`;
+  html+='</tr></thead><tbody>';
+  cohortRetention.forEach((row,i)=>{
+    html+=`<tr><td style="padding:6px 10px;color:#8a95a3;white-space:nowrap">${cohortMonthLabels[i]} 2024</td>`;
+    for(let m=0;m<12;m++){
+      const v=row[m]??null;
+      const bg=heatColor(v);
+      html+=`<td style="padding:6px 10px;text-align:center;background:${bg};color:${v!==null?'#e8ecf2':'transparent'};border-radius:4px">${v!==null?v+'%':''}</td>`;
+    }
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  c.innerHTML=html;
+}
+
+// ═══════════════════════════════════
+// UTIL FUNCTIONS
+// ═══════════════════════════════════
+function exportData(){
+  const rows=[['Empresa','Segmento','Revenue YTD','Delta YoY','Estado','Health'],...tableData.map(r=>[r.name,r.segment,'$'+r.rev,r.delta+'%',r.status,r.health])];
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='datacore_export.csv';a.click();
+}
+
+const dateRanges=['Ene – Dic 2024 ▾','Últimos 90 días ▾','Q4 2024 ▾','YTD 2024 ▾'];
+let drIdx=0;
+function cycleDateRange(el){drIdx=(drIdx+1)%dateRanges.length;el.textContent=dateRanges[drIdx];}
+
+let syncing=false;
+function refreshData(){
+  if(syncing)return;syncing=true;
+  const btn=document.querySelector('.btn-primary');
+  btn.textContent='⟳ Sincronizando…';
+  setTimeout(()=>{btn.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2" fill="none"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Sincronizar';syncing=false;},1800);
+}
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  initDashboard();
+  renderTable(tableData);
+  // Live KPI ticker
+  setInterval(()=>{
+    const r=document.getElementById('kpi-rev');
+    const v=4.28+(Math.random()-.5)*.02;
+    if(r) r.textContent='$'+v.toFixed(2)+'M';
+  },4000);
+});
+</script>
+
+<!-- ═══════ IMPORT MODAL ═══════ -->
+<div id="import-modal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:560px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:32px;position:relative">
+    <button onclick="closeImportModal()" style="position:absolute;top:16px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center">✕</button>
+    <div style="font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:4px">Importar datos</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:24px">CSV · Excel · JSON — tus datos reales en los gráficos</div>
+
+    <!-- DROP ZONE -->
+    <div id="drop-zone" onclick="document.getElementById('file-input').click()"
+      style="border:2px dashed var(--border2);border-radius:12px;padding:40px 24px;text-align:center;cursor:pointer;transition:.2s;margin-bottom:20px"
+      ondragover="dzOver(event)" ondragleave="dzLeave(event)" ondrop="dzDrop(event)">
+      <div style="font-size:28px;margin-bottom:10px">📂</div>
+      <div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:6px">Arrastra tu archivo aquí o haz clic para seleccionar</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--text3)">.csv · .xlsx · .xls · .json — máx 10MB</div>
+      <input id="file-input" type="file" accept=".csv,.xlsx,.xls,.json" style="display:none" onchange="handleFileSelect(this.files[0])"/>
+    </div>
+
+    <!-- FORMAT GUIDE -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--accent);margin-bottom:10px">FORMATO ESPERADO — columnas requeridas:</div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--text2);line-height:2">
+        <span style="color:var(--text)">empresa</span> · <span style="color:var(--text)">segmento</span> · <span style="color:var(--text)">revenue</span> · <span style="color:var(--text)">delta</span> · <span style="color:var(--text)">estado</span> · <span style="color:var(--text)">health</span>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:8px">Opcional: mes_1…mes_12 para gráfico de revenue mensual</div>
+      <button onclick="downloadTemplate()" style="margin-top:12px;background:transparent;border:1px solid var(--border2);color:var(--accent);font-family:var(--mono);font-size:10px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:.15s">⬇ Descargar plantilla CSV</button>
+    </div>
+
+    <!-- GOOGLE SHEETS -->
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:20px">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--accent2);margin-bottom:10px">GOOGLE SHEETS — conectar en vivo:</div>
+      <div style="display:flex;gap:8px">
+        <input id="sheets-url" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." 
+          style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-size:12px;font-family:var(--mono);outline:none"/>
+        <button onclick="importFromSheets()" style="background:var(--accent2);border:none;color:#fff;font-family:var(--mono);font-size:11px;padding:8px 14px;border-radius:6px;cursor:pointer;white-space:nowrap">Conectar</button>
+      </div>
+      <div style="font-size:10px;color:var(--text3);margin-top:6px">La hoja debe ser pública (Compartir → Cualquiera con el enlace)</div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div id="import-preview" style="display:none">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--accent);margin-bottom:10px" id="preview-title">VISTA PREVIA</div>
+      <div style="overflow-x:auto;border:1px solid var(--border);border-radius:8px;max-height:200px;overflow-y:auto">
+        <table id="preview-table" style="width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono)"></table>
+      </div>
+      <div id="import-stats" style="display:flex;gap:16px;margin-top:12px;font-size:11px;font-family:var(--mono);color:var(--text3)"></div>
+      <div id="import-errors" style="margin-top:8px;font-size:11px;font-family:var(--mono);color:var(--danger)"></div>
+      <button id="apply-btn" onclick="applyImport()" style="margin-top:16px;width:100%;background:var(--accent);border:none;color:#000;font-family:var(--display);font-weight:700;font-size:13px;padding:12px;border-radius:8px;cursor:pointer">
+        ✓ Aplicar — actualizar todos los gráficos
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ EXPORT MODAL ═══════ -->
+<div id="export-modal" style="display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);align-items:center;justify-content:center">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;width:420px;max-width:95vw;padding:32px;position:relative">
+    <button onclick="closeExportModal()" style="position:absolute;top:16px;right:16px;background:var(--surface2);border:1px solid var(--border);color:var(--text3);width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:14px">✕</button>
+    <div style="font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:4px">Exportar datos</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:24px">Descarga los datos actuales del dashboard</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="exportCSV()" style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--text);font-family:var(--sans);text-align:left;transition:.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+        <span style="font-size:22px">📄</span>
+        <div><div style="font-size:13px;font-weight:500">CSV — Excel compatible</div><div style="font-size:10px;font-family:var(--mono);color:var(--text3)">Tabla completa de cuentas · UTF-8</div></div>
+      </button>
+      <button onclick="exportJSON()" style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--text);font-family:var(--sans);text-align:left;transition:.15s" onmouseover="this.style.borderColor='var(--accent2)'" onmouseout="this.style.borderColor='var(--border)'">
+        <span style="font-size:22px">🔧</span>
+        <div><div style="font-size:13px;font-weight:500">JSON — API ready</div><div style="font-size:10px;font-family:var(--mono);color:var(--text3)">Estructura completa · datos + KPIs</div></div>
+      </button>
+      <button onclick="exportReport()" style="display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--text);font-family:var(--sans);text-align:left;transition:.15s" onmouseover="this.style.borderColor='var(--warn)'" onmouseout="this.style.borderColor='var(--border)'">
+        <span style="font-size:22px">📊</span>
+        <div><div style="font-size:13px;font-weight:500">Reporte HTML imprimible</div><div style="font-size:10px;font-family:var(--mono);color:var(--text3)">Resumen ejecutivo · listo para PDF</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ TOAST ═══════ -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:none;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px 18px;font-size:12px;font-family:var(--mono);box-shadow:0 8px 32px rgba(0,0,0,.4);transition:.3s"></div>
+
+<script>
+// ═══════════════════════════════════
+// IMPORT / EXPORT ENGINE
+// ═══════════════════════════════════
+let pendingData = null;
+
+// ─── MODALS ───
+function openImportModal(){ document.getElementById('import-modal').style.display='flex'; pendingData=null; document.getElementById('import-preview').style.display='none'; }
+function closeImportModal(){ document.getElementById('import-modal').style.display='none'; }
+function openExportModal(){ document.getElementById('export-modal').style.display='flex'; }
+function closeExportModal(){ document.getElementById('export-modal').style.display='none'; }
+
+// close on backdrop click
+['import-modal','export-modal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',function(e){ if(e.target===this) this.style.display='none'; });
+});
+
+// ─── DRAG & DROP ───
+function dzOver(e){ e.preventDefault(); document.getElementById('drop-zone').style.borderColor='var(--accent)'; document.getElementById('drop-zone').style.background='rgba(0,212,170,.04)'; }
+function dzLeave(e){ document.getElementById('drop-zone').style.borderColor='var(--border2)'; document.getElementById('drop-zone').style.background=''; }
+function dzDrop(e){ e.preventDefault(); dzLeave(e); const f=e.dataTransfer.files[0]; if(f) handleFileSelect(f); }
+
+// ─── FILE HANDLER ───
+function handleFileSelect(file){
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+
+  if(ext==='json'){
+    reader.onload = e => { try { const d=JSON.parse(e.target.result); processJSON(d); } catch(err){ showToast('❌ JSON inválido: '+err.message,'var(--danger)'); } };
+    reader.readAsText(file);
+  } else if(ext==='csv'){
+    reader.onload = e => parseCSV(e.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else if(ext==='xlsx'||ext==='xls'){
+    showToast('⚠ Excel: usa "Guardar como CSV" en Excel y reimporta el .csv','var(--warn)');
+    // Fallback: read as text for simple xlsx
+    reader.onload = e => {
+      // Try naive CSV extraction from xlsx text
+      showToast('💡 Tip: guarda como .csv desde Excel para mejor compatibilidad','var(--accent2)');
+    };
+    reader.readAsText(file);
+  } else {
+    showToast('❌ Formato no soportado. Usa .csv, .json','var(--danger)');
+  }
+}
+
+// ─── CSV PARSER ───
+function parseCSV(text){
+  const lines = text.trim().split(/\r?\n/);
+  if(lines.length < 2){ showToast('❌ CSV vacío o sin datos','var(--danger)'); return; }
+
+  // Detect separator
+  const sep = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(sep).map(h=>h.trim().toLowerCase().replace(/\s+/g,'_').replace(/['"]/g,''));
+
+  const rows = [];
+  const errors = [];
+
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    const cols = smartSplit(lines[i], sep);
+    const obj = {};
+    headers.forEach((h,j) => { obj[h] = (cols[j]||'').trim().replace(/['"]/g,''); });
+    const parsed = normalizeRow(obj, i+1);
+    if(parsed.error) errors.push(parsed.error);
+    else rows.push(parsed);
+  }
+
+  if(rows.length===0){ showToast('❌ No se pudo procesar ninguna fila. Verifica el formato.','var(--danger)'); return; }
+  showPreview(rows, errors, headers);
+}
+
+// handles quoted fields with commas inside
+function smartSplit(line, sep){
+  const result=[];let cur='';let inQ=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"') inQ=!inQ;
+    else if(line[i]===sep&&!inQ){ result.push(cur);cur=''; }
+    else cur+=line[i];
+  }
+  result.push(cur);
+  return result;
+}
+
+// ─── JSON HANDLER ───
+function processJSON(data){
+  // Accept array or {data:[...]} or {cuentas:[...]}
+  const rows = Array.isArray(data) ? data : (data.data||data.cuentas||data.accounts||Object.values(data)[0]);
+  if(!Array.isArray(rows)||rows.length===0){ showToast('❌ JSON no contiene array de datos','var(--danger)'); return; }
+  const normalized = rows.map((r,i)=>normalizeRow(r,i+1)).filter(r=>!r.error);
+  showPreview(normalized,[],Object.keys(rows[0]));
+}
+
+// ─── NORMALIZE ROW ───
+// Maps flexible column names to internal schema
+const colMap = {
+  empresa:['empresa','company','nombre','name','cuenta','account','cliente','client'],
+  segmento:['segmento','segment','tipo','type','categoria','category','tier'],
+  revenue:['revenue','rev','ingreso','ingresos','ventas','sales','monto','amount','valor','value','arr'],
+  delta:['delta','cambio','change','crecimiento','growth','var','variacion','yoy'],
+  estado:['estado','status','state','situacion'],
+  health:['health','salud','score','health_score','puntuacion','nota']
+};
+
+function findCol(obj, key){
+  const aliases = colMap[key]||[key];
+  for(const a of aliases){ if(obj[a]!==undefined) return obj[a]; }
+  return null;
+}
+
+function normalizeRow(obj, lineNum){
+  const name = findCol(obj,'empresa');
+  if(!name) return {error:`Fila ${lineNum}: sin columna 'empresa' o equivalente`};
+
+  const rawRev = findCol(obj,'revenue');
+  const rev = parseFloat(String(rawRev||'0').replace(/[$,\s]/g,''));
+  if(isNaN(rev)) return {error:`Fila ${lineNum}: revenue inválido ("${rawRev}")`};
+
+  const rawDelta = findCol(obj,'delta');
+  const delta = parseFloat(String(rawDelta||'0').replace(/[%,\s]/g,''));
+
+  const rawHealth = findCol(obj,'health');
+  const health = Math.min(100,Math.max(0,parseInt(rawHealth||'75')));
+
+  const rawStatus = String(findCol(obj,'estado')||'active').toLowerCase();
+  const statusMap = {activo:'active',active:'active',pendiente:'pending',pending:'pending',inactivo:'inactive',inactive:'inactive','en revisión':'review',review:'review'};
+  const status = statusMap[rawStatus]||'active';
+
+  return {
+    name: String(name).trim(),
+    segment: String(findCol(obj,'segmento')||'SMB').trim(),
+    rev, delta: isNaN(delta)?0:delta,
+    status, health,
+    _raw: obj
+  };
+}
+
+// ─── SHOW PREVIEW ───
+function showPreview(rows, errors, headers){
+  pendingData = rows;
+  const preview = document.getElementById('import-preview');
+  const table = document.getElementById('preview-table');
+  const stats = document.getElementById('import-stats');
+  const errDiv = document.getElementById('import-errors');
+  preview.style.display='block';
+
+  // Stats
+  const totalRev = rows.reduce((s,r)=>s+r.rev,0);
+  stats.innerHTML = `
+    <span style="color:var(--accent)">✓ ${rows.length} filas</span>
+    <span>Revenue total: <b style="color:var(--text)">$${(totalRev/1000).toFixed(1)}k</b></span>
+    <span>Segmentos: <b style="color:var(--text)">${[...new Set(rows.map(r=>r.segment))].join(', ')}</b></span>
+  `;
+
+  // Errors
+  errDiv.innerHTML = errors.length ? `⚠ ${errors.length} fila(s) ignoradas: ${errors.slice(0,3).join(' · ')}` : '';
+
+  // Preview table (first 6 rows)
+  const show = rows.slice(0,6);
+  const cols = ['name','segment','rev','delta','status','health'];
+  const labels = ['Empresa','Segmento','Revenue','Δ YoY','Estado','Health'];
+  table.innerHTML = `
+    <thead><tr>${labels.map(l=>`<th style="padding:7px 10px;color:var(--text3);font-size:10px;border-bottom:1px solid var(--border);white-space:nowrap">${l}</th>`).join('')}</tr></thead>
+    <tbody>${show.map(r=>`<tr>
+      <td style="padding:7px 10px;color:var(--text)">${r.name}</td>
+      <td style="padding:7px 10px;color:var(--text2)">${r.segment}</td>
+      <td style="padding:7px 10px;color:var(--accent)">$${(r.rev/1000).toFixed(1)}k</td>
+      <td style="padding:7px 10px;color:${r.delta>=0?'var(--accent)':'var(--danger)'}">${r.delta>=0?'+':''}${r.delta.toFixed(1)}%</td>
+      <td style="padding:7px 10px;color:var(--text2)">${r.status}</td>
+      <td style="padding:7px 10px;color:var(--text)">${r.health}</td>
+    </tr>`).join('')}${rows.length>6?`<tr><td colspan="6" style="padding:7px 10px;color:var(--text3);font-size:10px">… y ${rows.length-6} filas más</td></tr>`:''}</tbody>
+  `;
+  showToast(`✓ ${rows.length} registros listos para importar`,'var(--accent)');
+}
+
+// ─── APPLY IMPORT ───
+function applyImport(){
+  if(!pendingData||pendingData.length===0){ showToast('❌ Sin datos para aplicar','var(--danger)'); return; }
+
+  // Replace global tableData
+  tableData.length=0;
+  pendingData.forEach(r=>tableData.push(r));
+
+  // Rebuild KPIs
+  const totalRev = tableData.reduce((s,r)=>s+r.rev,0);
+  const el = document.getElementById('kpi-rev');
+  if(el) el.textContent = '$'+(totalRev/1000000).toFixed(2)+'M';
+  const custEl = document.getElementById('kpi-cust');
+  if(custEl) custEl.textContent = tableData.length.toLocaleString();
+
+  // Rebuild revenue chart with aggregated data per month (distribute evenly if no monthly cols)
+  const monthlyApprox = Array.from({length:12},(_,i)=>{
+    const share=[.06,.07,.08,.07,.09,.09,.10,.10,.08,.10,.09,.07][i];
+    return Math.round(totalRev*share/1000);
+  });
+  revenueData.actual = monthlyApprox;
+  revenueData.budget = monthlyApprox.map(v=>Math.round(v*1.05));
+
+  // Rebuild segment donut
+  const segs={};
+  tableData.forEach(r=>{ segs[r.segment]=(segs[r.segment]||0)+r.rev; });
+  const segTotal=Object.values(segs).reduce((a,b)=>a+b,0);
+  channelData.labels=Object.keys(segs);
+  channelData.values=Object.values(segs).map(v=>Math.round(v/segTotal*100));
+
+  // Re-render table
+  filterTable();
+
+  // Destroy and re-init charts
+  Object.keys(initialized).forEach(k=>{
+    if(k!=='true') delete initialized[k];
+  });
+  ['revChart','channelChart','radarChart'].forEach(k=>delete initialized[k]);
+  document.getElementById('channel-legend').innerHTML='';
+
+  // Destroy chart instances
+  Chart.helpers.each(Chart.instances,(c)=>c.destroy());
+
+  initDashboard();
+
+  closeImportModal();
+  showToast(`✅ ${tableData.length} registros aplicados — gráficos actualizados`,'var(--accent)');
+}
+
+// ─── GOOGLE SHEETS ───
+function importFromSheets(){
+  const url = document.getElementById('sheets-url').value.trim();
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(!match){ showToast('❌ URL de Google Sheets inválida','var(--danger)'); return; }
+  const id = match[1];
+  const apiUrl = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json`;
+  showToast('⏳ Conectando con Google Sheets…','var(--accent2)');
+  fetch(apiUrl)
+    .then(r=>{ if(!r.ok) throw new Error('No se pudo acceder. ¿La hoja es pública?'); return r.text(); })
+    .then(text=>{
+      const json = JSON.parse(text.substring(47).slice(0,-2));
+      const headers = json.table.cols.map(c=>(c.label||c.id).toLowerCase().replace(/\s+/g,'_'));
+      const rows = json.table.rows.map((r,i)=>{
+        const obj={};
+        headers.forEach((h,j)=>{ obj[h]=r.c[j]?r.c[j].v:null; });
+        return normalizeRow(obj,i+1);
+      }).filter(r=>!r.error);
+      showPreview(rows,[],headers);
+    })
+    .catch(err=>showToast('❌ '+err.message,'var(--danger)'));
+}
+
+// ─── TEMPLATE ───
+function downloadTemplate(){
+  const csv = [
+    'empresa,segmento,revenue,delta,estado,health',
+    'Mi Empresa SA,Enterprise,250000,15.4,active,88',
+    'Cliente B,Mid-Market,85000,-3.2,pending,62',
+    'Startup C,SMB,22000,45.0,active,91',
+    'Corp D,Enterprise,420000,28.7,active,95',
+    'Firma E,Mid-Market,110000,8.1,review,55',
+  ].join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='datacore_plantilla.csv';a.click();
+  showToast('⬇ Plantilla descargada','var(--accent)');
+}
+
+// ─── EXPORTS ───
+function exportCSV(){
+  const rows=[['Empresa','Segmento','Revenue','Delta YoY','Estado','Health'],
+    ...tableData.map(r=>[r.name,r.segment,r.rev,r.delta+'%',r.status,r.health])];
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='datacore_export.csv';a.click();
+  closeExportModal(); showToast('⬇ CSV exportado','var(--accent)');
+}
+
+function exportJSON(){
+  const payload={
+    exported_at: new Date().toISOString(),
+    total_records: tableData.length,
+    total_revenue: tableData.reduce((s,r)=>s+r.rev,0),
+    data: tableData
+  };
+  const a=document.createElement('a');
+  a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(payload,null,2));
+  a.download='datacore_export.json';a.click();
+  closeExportModal(); showToast('⬇ JSON exportado','var(--accent2)');
+}
+
+function exportReport(){
+  const totalRev=tableData.reduce((s,r)=>s+r.rev,0);
+  const active=tableData.filter(r=>r.status==='active').length;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+  <title>Reporte DataCore BI — ${new Date().toLocaleDateString('es')}</title>
+  <style>body{font-family:sans-serif;padding:40px;color:#111;max-width:800px;margin:auto}
+  h1{font-size:22px;border-bottom:2px solid #00d4aa;padding-bottom:8px}
+  h2{font-size:14px;margin-top:28px;color:#444;text-transform:uppercase;letter-spacing:1px}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+  th{text-align:left;padding:8px;background:#f4f4f4;border-bottom:2px solid #ddd}
+  td{padding:8px;border-bottom:1px solid #eee}
+  .kpi{display:inline-block;border:1px solid #ddd;border-radius:8px;padding:16px 24px;margin:8px;min-width:140px}
+  .kpi-v{font-size:24px;font-weight:700;color:#00d4aa}
+  .kpi-l{font-size:11px;color:#888;margin-top:4px}
+  @media print{body{padding:20px}}</style></head><body>
+  <h1>📊 Reporte Ejecutivo — DataCore BI</h1>
+  <p style="color:#888;font-size:12px">Generado: ${new Date().toLocaleString('es')} · villegasclei27@gmail.com</p>
+  <h2>KPIs Principales</h2>
+  <div>
+    <div class="kpi"><div class="kpi-v">$${(totalRev/1000000).toFixed(2)}M</div><div class="kpi-l">Revenue Total</div></div>
+    <div class="kpi"><div class="kpi-v">${tableData.length}</div><div class="kpi-l">Total Cuentas</div></div>
+    <div class="kpi"><div class="kpi-v">${active}</div><div class="kpi-l">Cuentas Activas</div></div>
+    <div class="kpi"><div class="kpi-v">${Math.round(tableData.reduce((s,r)=>s+r.health,0)/tableData.length)}</div><div class="kpi-l">Health Promedio</div></div>
+  </div>
+  <h2>Top 10 Cuentas por Revenue</h2>
+  <table><thead><tr><th>#</th><th>Empresa</th><th>Segmento</th><th>Revenue</th><th>Δ YoY</th><th>Health</th></tr></thead>
+  <tbody>${[...tableData].sort((a,b)=>b.rev-a.rev).slice(0,10).map((r,i)=>`
+    <tr><td>${i+1}</td><td><b>${r.name}</b></td><td>${r.segment}</td>
+    <td>$${(r.rev/1000).toFixed(1)}k</td>
+    <td style="color:${r.delta>=0?'green':'red'}">${r.delta>=0?'+':''}${r.delta.toFixed(1)}%</td>
+    <td>${r.health}</td></tr>`).join('')}
+  </tbody></table>
+  <p style="margin-top:40px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px">© 2026 DataCore BI — Todos los derechos reservados · villegasclei27@gmail.com</p>
+  </body></html>`;
+  const a=document.createElement('a');
+  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(html);
+  a.download='reporte_datacore.html';a.click();
+  closeExportModal(); showToast('⬇ Reporte HTML exportado','var(--warn)');
+}
+
+// ─── TOAST ───
+function showToast(msg, color='var(--accent)'){
+  const t=document.getElementById('toast');
+  t.style.display='flex';
+  t.style.borderColor=color;
+  t.innerHTML=`<span style="color:${color}">${msg}</span>`;
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>{ t.style.display='none'; },3500);
+}
+</script>
+</body>
+</html>
